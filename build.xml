@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="gwt-dev" default="update">
+
+  <property name="src" value="src"/>
+  <property name="bin" value="bin"/>
+  <property name="ant" value="ant"/>
+  <property name="dst" value="."/>
+
+  <property name="compiler.source" value="1.5"/>
+  <property name="compiler.target" value="1.5"/>
+  <property name="compiler.debug" value="true"/>
+  <property name="compiler.encoding" value="utf-8"/>
+
+  <import file="${ant}/build.in.update.xml"/>
+  <property file="${user.home}/update.properties"/>
+
+
+  <macrodef name="version">
+    <sequential>
+      <property file="build.version" />
+      <fail unless="version.major" message="Invalid contents for file 'build.version', missing 'version.major'."/>
+      <fail unless="version.minor" message="Invalid contents for file 'build.version', missing 'version.minor'."/>
+      <fail unless="version.build" message="Invalid contents for file 'build.version', missing 'version.build'."/>
+
+      <property name="base.version" value="${version.major}.${version.minor}"/>
+
+      <condition property="this.version" value="${base.version}" else="${base.version}.${version.build}">
+        <equals arg1="0" arg2="${version.build}"/>
+      </condition>
+
+      <property name="target.jar" value="${dst}/${ant.project.name}-${this.version}.jar"/>
+
+      <echo/>
+      <echo message="Package-Version: ${ant.project.name}-${this.version}"/>
+      <echo message="Package-Jar: ${target.jar}"/>
+      <echo/>
+
+    </sequential>
+  </macrodef>
+
+
+  <target name="update" depends="jar" if="gwt-dev.update">
+
+    <do-update src="${target.jar}" tgt="${gwt-dev.update}"/>
+  </target>
+
+  <target name="jar" depends="compile" description="Package bin to target jar, clean bin.">
+
+    <delete file="${target.jar}"/>
+    <jar jarfile="${target.jar}" basedir="${bin}" >
+    </jar>
+    <delete dir="${bin}"/>
+  </target>
+
+  <target name="compile" description="Compile src to bin">
+
+    <version/>
+
+    <delete dir="${bin}"/>
+    <mkdir dir="${bin}"/>
+    <copy todir="${bin}">
+      <fileset dir="${src}" includes="**/*.properties"/>
+      <fileset dir="${src}" includes="**/*.txt"/>
+      <fileset dir="${src}" includes="**/*.xml"/>
+    </copy>
+
+    <javac srcdir="${src}" destdir="${bin}" debug="${compiler.debug}" encoding="${compiler.encoding}"
+           source="${compiler.source}" target="${compiler.target}">
+    </javac>
+  </target>
+
+</project>
