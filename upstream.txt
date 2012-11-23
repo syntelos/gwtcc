@@ -1,1 +1,4 @@
-11383
+Repository Root: http://google-web-toolkit.googlecode.com/svn
+Revision: 11383
+Last Changed Rev: 11381
+Last Changed Date: 2012-11-20 19:02:19 -0500 (Tue, 20 Nov 2012)

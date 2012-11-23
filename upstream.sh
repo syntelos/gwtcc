@@ -9,21 +9,17 @@ tgt=upstream.txt
 
 if [ -d ${trunk_dir} ]
 then
-    if cd ${trunk_dir}
+
+    if svn info ${trunk_dir} | egrep -v '(^Path|UUID|Node|Schedule|Author|URL)' | egrep '[A-Z][a-z]*' > ${tgt}
     then
-        if svn info | egrep -v '(^Path|UUID|Node|Schedule|Author|URL)' | egrep '[A-Z][a-z]*' > ${tgt}
-        then
-            cat -n ${tgt}
-            wc -l ${tgt}
-            exit 0
-        else
-            echo "Error in 'svn info' in '$(pwd)'"
-            exit 1
-        fi
+        cat -n ${tgt}
+        wc -l ${tgt}
+        exit 0
     else
-        echo "Error in 'cd ${trunk_dir}'"
+        echo "Error in 'svn info' in '$(pwd)'"
         exit 1
     fi
+
 else
     echo "Error, directory not found '${trunk_dir}'"
     exit 1
