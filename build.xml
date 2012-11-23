@@ -2,6 +2,7 @@
 <project name="gwt-dev" default="update">
 
   <property name="src" value="src"/>
+  <property name="lib" value="lib"/>
   <property name="bin" value="bin"/>
   <property name="ant" value="ant"/>
   <property name="dst" value="."/>
@@ -14,6 +15,11 @@
   <import file="${ant}/build.in.update.xml"/>
   <property file="${user.home}/update.properties"/>
 
+  <path id="lib.path">
+    <fileset dir="${lib}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
 
   <macrodef name="version">
     <sequential>
@@ -66,6 +72,9 @@
 
     <javac srcdir="${src}" destdir="${bin}" debug="${compiler.debug}" encoding="${compiler.encoding}"
            source="${compiler.source}" target="${compiler.target}">
+      <classpath>
+        <path refid="lib.path"/>
+      </classpath>
     </javac>
   </target>
 
