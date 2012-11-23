@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="gwt-dev" default="update">
+<project name="gwtcc" default="update">
 
   <property name="src" value="src"/>
   <property name="lib" value="lib"/>
@@ -45,9 +45,9 @@
   </macrodef>
 
 
-  <target name="update" depends="jar" if="gwt-dev.update">
+  <target name="update" depends="jar" if="gwtcc.update">
 
-    <do-update src="${target.jar}" tgt="${gwt-dev.update}"/>
+    <do-update src="${target.jar}" tgt="${gwtcc.update}"/>
   </target>
 
   <target name="jar" depends="compile" description="Package bin to target jar, clean bin.">
