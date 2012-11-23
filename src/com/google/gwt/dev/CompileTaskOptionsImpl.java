@@ -26,63 +26,63 @@ import java.util.List;
  */
 class CompileTaskOptionsImpl implements CompileTaskOptions {
 
-  private Type logLevel;
-  private final List<String> moduleNames = new ArrayList<String>();
-  private boolean useGuiLogger;
-  private File workDir;
+    private Type logLevel;
+    private final List<String> moduleNames = new ArrayList<String>();
+    private boolean useGuiLogger;
+    private File workDir;
 
-  public CompileTaskOptionsImpl() {
-  }
+    public CompileTaskOptionsImpl() {
+    }
 
-  public CompileTaskOptionsImpl(CompileTaskOptions other) {
-    copyFrom(other);
-  }
+    public CompileTaskOptionsImpl(CompileTaskOptions other) {
+        copyFrom(other);
+    }
 
-  public void addModuleName(String moduleName) {
-    moduleNames.add(moduleName);
-  }
+    public void addModuleName(String moduleName) {
+        moduleNames.add(moduleName);
+    }
 
-  public void copyFrom(CompileTaskOptions other) {
-    setLogLevel(other.getLogLevel());
-    setModuleNames(other.getModuleNames());
-    setUseGuiLogger(other.isUseGuiLogger());
-    setWorkDir(other.getWorkDir());
-  }
+    public void copyFrom(CompileTaskOptions other) {
+        setLogLevel(other.getLogLevel());
+        setModuleNames(other.getModuleNames());
+        setUseGuiLogger(other.isUseGuiLogger());
+        setWorkDir(other.getWorkDir());
+    }
 
-  public File getCompilerWorkDir(String moduleName) {
-    return new File(new File(getWorkDir(), moduleName), "compiler");
-  }
+    public File getCompilerWorkDir(String moduleName) {
+        return new File(new File(getWorkDir(), moduleName), "compiler");
+    }
 
-  public Type getLogLevel() {
-    return logLevel;
-  }
+    public Type getLogLevel() {
+        return logLevel;
+    }
 
-  public List<String> getModuleNames() {
-    return new ArrayList<String>(moduleNames);
-  }
+    public List<String> getModuleNames() {
+        return new ArrayList<String>(moduleNames);
+    }
 
-  public File getWorkDir() {
-    return workDir;
-  }
+    public File getWorkDir() {
+        return workDir;
+    }
 
-  public boolean isUseGuiLogger() {
-    return useGuiLogger;
-  }
+    public boolean isUseGuiLogger() {
+        return useGuiLogger;
+    }
 
-  public void setLogLevel(Type logLevel) {
-    this.logLevel = logLevel;
-  }
+    public void setLogLevel(Type logLevel) {
+        this.logLevel = logLevel;
+    }
 
-  public void setModuleNames(List<String> moduleNames) {
-    this.moduleNames.clear();
-    this.moduleNames.addAll(moduleNames);
-  }
+    public void setModuleNames(List<String> moduleNames) {
+        this.moduleNames.clear();
+        this.moduleNames.addAll(moduleNames);
+    }
 
-  public void setUseGuiLogger(boolean useGuiLogger) {
-    this.useGuiLogger = useGuiLogger;
-  }
+    public void setUseGuiLogger(boolean useGuiLogger) {
+        this.useGuiLogger = useGuiLogger;
+    }
 
-  public void setWorkDir(File workDir) {
-    this.workDir = workDir;
-  }
+    public void setWorkDir(File workDir) {
+        this.workDir = workDir;
+    }
 }

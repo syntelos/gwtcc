@@ -50,7 +50,9 @@ import java.util.concurrent.FutureTask;
  */
 public class Compiler {
 
-    static class ArgProcessor extends PrecompileTaskArgProcessor {
+    static class ArgProcessor
+        extends PrecompileTaskArgProcessor
+    {
         public ArgProcessor(CompilerOptions options) {
             super(options);
 
@@ -70,8 +72,10 @@ public class Compiler {
         }
     }
 
-    static class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements
-                                                                           CompilerOptions {
+    static class CompilerOptionsImpl
+        extends PrecompileTaskOptionsImpl
+        implements CompilerOptions
+    {
 
         private LinkOptionsImpl linkOptions = new LinkOptionsImpl();
         private int localWorkers;
