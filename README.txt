@@ -11,6 +11,7 @@ Overview
 
   http://blog.syntelos.com/2012/11/getting-to-know-gwt-compiler.html
 
+
 Repository
 
   This repo is intended as an unmodified copy of a selected subset of
@@ -18,6 +19,12 @@ Repository
     http://google-web-toolkit.googlecode.com/svn/
 
   Some or all java source files may be pretty printed.
+
+
+Upstream Revision
+
+  http://github.com/syntelos/gwtcc/blob/master/upstream.txt
+
 
 Forks
 
