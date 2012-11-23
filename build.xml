@@ -7,6 +7,8 @@
   <property name="ant" value="ant"/>
   <property name="dst" value="."/>
 
+  <property name="main.class" value="com.google.gwt.dev.Compiler"/>
+
   <property name="compiler.source" value="1.5"/>
   <property name="compiler.target" value="1.5"/>
   <property name="compiler.debug" value="true"/>
@@ -52,8 +54,17 @@
 
   <target name="jar" depends="compile" description="Package bin to target jar, clean bin.">
 
+    <java outputproperty="lib.path.manifest" classpath="${ant}" classname="LibPathManifest" failonerror="true">
+
+      <arg value="${toString:lib.path}"/>
+    </java>
+
     <delete file="${target.jar}"/>
     <jar jarfile="${target.jar}" basedir="${bin}" >
+      <manifest>
+        <attribute name="Main-Class" value="${main.class}"/>
+        <attribute name="Class-Path" value="${lib.path.manifest}"/>
+      </manifest>
     </jar>
     <delete dir="${bin}"/>
   </target>
