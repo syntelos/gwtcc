@@ -50,238 +50,238 @@ import java.util.concurrent.FutureTask;
  */
 public class Compiler {
 
-  static class ArgProcessor extends PrecompileTaskArgProcessor {
-    public ArgProcessor(CompilerOptions options) {
-      super(options);
+    static class ArgProcessor extends PrecompileTaskArgProcessor {
+        public ArgProcessor(CompilerOptions options) {
+            super(options);
 
-      registerHandler(new ArgHandlerLocalWorkers(options));
+            registerHandler(new ArgHandlerLocalWorkers(options));
 
-      // Override the ArgHandlerWorkDirRequired in the super class.
-      registerHandler(new ArgHandlerWorkDirOptional(options));
+            // Override the ArgHandlerWorkDirRequired in the super class.
+            registerHandler(new ArgHandlerWorkDirOptional(options));
 
-      registerHandler(new ArgHandlerWarDir(options));
-      registerHandler(new ArgHandlerDeployDir(options));
-      registerHandler(new ArgHandlerExtraDir(options));
-    }
+            registerHandler(new ArgHandlerWarDir(options));
+            registerHandler(new ArgHandlerDeployDir(options));
+            registerHandler(new ArgHandlerExtraDir(options));
+        }
 
-    @Override
-    protected String getName() {
-      return Compiler.class.getName();
-    }
-  }
-
-  static class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements
-      CompilerOptions {
-
-    private LinkOptionsImpl linkOptions = new LinkOptionsImpl();
-    private int localWorkers;
-
-    public CompilerOptionsImpl() {
-    }
-
-    public CompilerOptionsImpl(CompilerOptions other) {
-      copyFrom(other);
-    }
-
-    public void copyFrom(CompilerOptions other) {
-      super.copyFrom(other);
-      linkOptions.copyFrom(other);
-      localWorkers = other.getLocalWorkers();
-    }
-
-    @Override
-    public File getDeployDir() {
-      return linkOptions.getDeployDir();
-    }
-
-    @Override
-    public File getExtraDir() {
-      return linkOptions.getExtraDir();
-    }
-
-    @Override
-    public int getLocalWorkers() {
-      return localWorkers;
-    }
-
-    @Override
-    @Deprecated
-    public File getOutDir() {
-      return linkOptions.getOutDir();
-    }
-
-    @Override
-    public File getWarDir() {
-      return linkOptions.getWarDir();
-    }
-
-    @Override
-    public void setDeployDir(File extraDir) {
-      linkOptions.setDeployDir(extraDir);
-    }
-
-    @Override
-    public void setExtraDir(File extraDir) {
-      linkOptions.setExtraDir(extraDir);
-    }
-
-    @Override
-    public void setLocalWorkers(int localWorkers) {
-      this.localWorkers = localWorkers;
-    }
-
-    @Override
-    @Deprecated
-    public void setOutDir(File outDir) {
-      linkOptions.setOutDir(outDir);
-    }
-
-    @Override
-    public void setWarDir(File outDir) {
-      linkOptions.setWarDir(outDir);
-    }
-  }
-
-  public static void main(String[] args) {
-    Memory.initialize();
-    if (System.getProperty("gwt.jjs.dumpAst") != null) {
-      System.out.println("Will dump AST to: "
-          + System.getProperty("gwt.jjs.dumpAst"));
-    }
-
-    SpeedTracerLogger.init();
-
-    /*
-     * NOTE: main always exits with a call to System.exit to terminate any
-     * non-daemon threads that were started in Generators. Typically, this is to
-     * shutdown AWT related threads, since the contract for their termination is
-     * still implementation-dependent.
-     */
-    final CompilerOptions options = new CompilerOptionsImpl();
-    if (new ArgProcessor(options).processArgs(args)) {
-      CompileTask task = new CompileTask() {
         @Override
-        public boolean run(TreeLogger logger) throws UnableToCompleteException {
-          FutureTask<UpdateResult> updater = null;
-          if (!options.isUpdateCheckDisabled()) {
-            updater = CheckForUpdates.checkForUpdatesInBackgroundThread(logger,
-                CheckForUpdates.ONE_DAY);
-          }
-          boolean success = new Compiler(options).run(logger);
-          if (success) {
-            CheckForUpdates.logUpdateAvailable(logger, updater);
-          }
-          return success;
+        protected String getName() {
+            return Compiler.class.getName();
         }
-      };
-      if (CompileTaskRunner.runWithAppropriateLogger(options, task)) {
-        // Exit w/ success code.
-        System.exit(0);
-      }
     }
-    // Exit w/ non-success code.
-    System.exit(1);
-  }
 
-  private final CompilerOptionsImpl options;
+    static class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements
+                                                                           CompilerOptions {
 
-  public Compiler(CompilerOptions options) {
-    this.options = new CompilerOptionsImpl(options);
-  }
+        private LinkOptionsImpl linkOptions = new LinkOptionsImpl();
+        private int localWorkers;
 
-  public boolean run(TreeLogger logger) throws UnableToCompleteException {
-    ModuleDef[] modules = new ModuleDef[options.getModuleNames().size()];
-    int i = 0;
-    for (String moduleName : options.getModuleNames()) {
-      modules[i++] = ModuleDefLoader.loadFromClassPath(logger, moduleName, true);
-    }
-    return run(logger, modules);
-  }
-
-  public boolean run(TreeLogger logger, ModuleDef... modules)
-      throws UnableToCompleteException {
-    boolean tempWorkDir = false;
-    try {
-      if (options.getWorkDir() == null) {
-        options.setWorkDir(Utility.makeTemporaryDirectory(null, "gwtc"));
-        tempWorkDir = true;
-      }
-      if (options.isSoycEnabled() && options.getExtraDir() == null) {
-        options.setExtraDir(new File("extras"));
-      }
-
-      File persistentUnitCacheDir = null;
-      if (options.getWarDir() != null && !options.getWarDir().getName().endsWith(".jar")) {
-        persistentUnitCacheDir = new File(options.getWarDir(), "../");
-      }
-      CompilationStateBuilder.init(logger, persistentUnitCacheDir);
-
-      for (ModuleDef module : modules) {
-        String moduleName = module.getCanonicalName();
-        if (options.isValidateOnly()) {
-          if (!Precompile.validate(logger, options, module, options.getGenDir())) {
-            return false;
-          }
-        } else {
-          long compileStart = System.currentTimeMillis();
-          TreeLogger branch = logger.branch(TreeLogger.INFO,
-              "Compiling module " + moduleName);
-
-          // Optimize early since permutation compiles will run in process.
-          options.setOptimizePrecompile(true);
-          Precompilation precompilation = Precompile.precompile(branch,
-              options, module, options.getGenDir());
-          if (precompilation == null) {
-            return false;
-          }
-
-          Event compilePermutationsEvent = SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
-          Permutation[] allPerms = precompilation.getPermutations();
-          List<FileBackedObject<PermutationResult>> resultFiles = CompilePerms.makeResultFiles(
-              options.getCompilerWorkDir(moduleName), allPerms);
-          CompilePerms.compile(branch, precompilation, allPerms,
-              options.getLocalWorkers(), resultFiles);
-          compilePermutationsEvent.end();
-
-          ArtifactSet generatedArtifacts = precompilation.getGeneratedArtifacts();
-          JJSOptions precompileOptions = precompilation.getUnifiedAst().getOptions();
-
-          precompilation = null; // No longer needed, so save the memory
-
-          Event linkEvent = SpeedTracerLogger.start(CompilerEventType.LINK);
-          File absPath = new File(options.getWarDir(), module.getName());
-          absPath = absPath.getAbsoluteFile();
-
-          String logMessage = "Linking into " + absPath;
-          if (options.getExtraDir() != null) {
-            File absExtrasPath = new File(options.getExtraDir(),
-                module.getName());
-            absExtrasPath = absExtrasPath.getAbsoluteFile();
-            logMessage += "; Writing extras to " + absExtrasPath;
-          }
-          Link.link(logger.branch(TreeLogger.TRACE, logMessage), module,
-              generatedArtifacts, allPerms, resultFiles, options.getWarDir(),
-              options.getDeployDir(), options.getExtraDir(), precompileOptions);
-
-          linkEvent.end();
-          long compileDone = System.currentTimeMillis();
-          long delta = compileDone - compileStart;
-          if (branch.isLoggable(TreeLogger.INFO)) {
-            branch.log(TreeLogger.INFO, "Compilation succeeded -- "
-                + String.format("%.3f", delta / 1000d) + "s");
-          }
+        public CompilerOptionsImpl() {
         }
-      }
 
-    } catch (IOException e) {
-      logger.log(TreeLogger.ERROR, "Unable to create compiler work directory",
-          e);
-      return false;
-    } finally {
-      if (tempWorkDir) {
-        Util.recursiveDelete(options.getWorkDir(), false);
-      }
+        public CompilerOptionsImpl(CompilerOptions other) {
+            copyFrom(other);
+        }
+
+        public void copyFrom(CompilerOptions other) {
+            super.copyFrom(other);
+            linkOptions.copyFrom(other);
+            localWorkers = other.getLocalWorkers();
+        }
+
+        @Override
+        public File getDeployDir() {
+            return linkOptions.getDeployDir();
+        }
+
+        @Override
+        public File getExtraDir() {
+            return linkOptions.getExtraDir();
+        }
+
+        @Override
+        public int getLocalWorkers() {
+            return localWorkers;
+        }
+
+        @Override
+        @Deprecated
+        public File getOutDir() {
+            return linkOptions.getOutDir();
+        }
+
+        @Override
+        public File getWarDir() {
+            return linkOptions.getWarDir();
+        }
+
+        @Override
+        public void setDeployDir(File extraDir) {
+            linkOptions.setDeployDir(extraDir);
+        }
+
+        @Override
+        public void setExtraDir(File extraDir) {
+            linkOptions.setExtraDir(extraDir);
+        }
+
+        @Override
+        public void setLocalWorkers(int localWorkers) {
+            this.localWorkers = localWorkers;
+        }
+
+        @Override
+        @Deprecated
+        public void setOutDir(File outDir) {
+            linkOptions.setOutDir(outDir);
+        }
+
+        @Override
+        public void setWarDir(File outDir) {
+            linkOptions.setWarDir(outDir);
+        }
     }
-    return true;
-  }
+
+    public static void main(String[] args) {
+        Memory.initialize();
+        if (System.getProperty("gwt.jjs.dumpAst") != null) {
+            System.out.println("Will dump AST to: "
+                               + System.getProperty("gwt.jjs.dumpAst"));
+        }
+
+        SpeedTracerLogger.init();
+
+        /*
+         * NOTE: main always exits with a call to System.exit to terminate any
+         * non-daemon threads that were started in Generators. Typically, this is to
+         * shutdown AWT related threads, since the contract for their termination is
+         * still implementation-dependent.
+         */
+        final CompilerOptions options = new CompilerOptionsImpl();
+        if (new ArgProcessor(options).processArgs(args)) {
+            CompileTask task = new CompileTask() {
+                    @Override
+                    public boolean run(TreeLogger logger) throws UnableToCompleteException {
+                        FutureTask<UpdateResult> updater = null;
+                        if (!options.isUpdateCheckDisabled()) {
+                            updater = CheckForUpdates.checkForUpdatesInBackgroundThread(logger,
+                                                                                        CheckForUpdates.ONE_DAY);
+                        }
+                        boolean success = new Compiler(options).run(logger);
+                        if (success) {
+                            CheckForUpdates.logUpdateAvailable(logger, updater);
+                        }
+                        return success;
+                    }
+                };
+            if (CompileTaskRunner.runWithAppropriateLogger(options, task)) {
+                // Exit w/ success code.
+                System.exit(0);
+            }
+        }
+        // Exit w/ non-success code.
+        System.exit(1);
+    }
+
+    private final CompilerOptionsImpl options;
+
+    public Compiler(CompilerOptions options) {
+        this.options = new CompilerOptionsImpl(options);
+    }
+
+    public boolean run(TreeLogger logger) throws UnableToCompleteException {
+        ModuleDef[] modules = new ModuleDef[options.getModuleNames().size()];
+        int i = 0;
+        for (String moduleName : options.getModuleNames()) {
+            modules[i++] = ModuleDefLoader.loadFromClassPath(logger, moduleName, true);
+        }
+        return run(logger, modules);
+    }
+
+    public boolean run(TreeLogger logger, ModuleDef... modules)
+        throws UnableToCompleteException {
+        boolean tempWorkDir = false;
+        try {
+            if (options.getWorkDir() == null) {
+                options.setWorkDir(Utility.makeTemporaryDirectory(null, "gwtc"));
+                tempWorkDir = true;
+            }
+            if (options.isSoycEnabled() && options.getExtraDir() == null) {
+                options.setExtraDir(new File("extras"));
+            }
+
+            File persistentUnitCacheDir = null;
+            if (options.getWarDir() != null && !options.getWarDir().getName().endsWith(".jar")) {
+                persistentUnitCacheDir = new File(options.getWarDir(), "../");
+            }
+            CompilationStateBuilder.init(logger, persistentUnitCacheDir);
+
+            for (ModuleDef module : modules) {
+                String moduleName = module.getCanonicalName();
+                if (options.isValidateOnly()) {
+                    if (!Precompile.validate(logger, options, module, options.getGenDir())) {
+                        return false;
+                    }
+                } else {
+                    long compileStart = System.currentTimeMillis();
+                    TreeLogger branch = logger.branch(TreeLogger.INFO,
+                                                      "Compiling module " + moduleName);
+
+                    // Optimize early since permutation compiles will run in process.
+                    options.setOptimizePrecompile(true);
+                    Precompilation precompilation = Precompile.precompile(branch,
+                                                                          options, module, options.getGenDir());
+                    if (precompilation == null) {
+                        return false;
+                    }
+
+                    Event compilePermutationsEvent = SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
+                    Permutation[] allPerms = precompilation.getPermutations();
+                    List<FileBackedObject<PermutationResult>> resultFiles = CompilePerms.makeResultFiles(
+                                                                                                         options.getCompilerWorkDir(moduleName), allPerms);
+                    CompilePerms.compile(branch, precompilation, allPerms,
+                                         options.getLocalWorkers(), resultFiles);
+                    compilePermutationsEvent.end();
+
+                    ArtifactSet generatedArtifacts = precompilation.getGeneratedArtifacts();
+                    JJSOptions precompileOptions = precompilation.getUnifiedAst().getOptions();
+
+                    precompilation = null; // No longer needed, so save the memory
+
+                    Event linkEvent = SpeedTracerLogger.start(CompilerEventType.LINK);
+                    File absPath = new File(options.getWarDir(), module.getName());
+                    absPath = absPath.getAbsoluteFile();
+
+                    String logMessage = "Linking into " + absPath;
+                    if (options.getExtraDir() != null) {
+                        File absExtrasPath = new File(options.getExtraDir(),
+                                                      module.getName());
+                        absExtrasPath = absExtrasPath.getAbsoluteFile();
+                        logMessage += "; Writing extras to " + absExtrasPath;
+                    }
+                    Link.link(logger.branch(TreeLogger.TRACE, logMessage), module,
+                              generatedArtifacts, allPerms, resultFiles, options.getWarDir(),
+                              options.getDeployDir(), options.getExtraDir(), precompileOptions);
+
+                    linkEvent.end();
+                    long compileDone = System.currentTimeMillis();
+                    long delta = compileDone - compileStart;
+                    if (branch.isLoggable(TreeLogger.INFO)) {
+                        branch.log(TreeLogger.INFO, "Compilation succeeded -- "
+                                   + String.format("%.3f", delta / 1000d) + "s");
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            logger.log(TreeLogger.ERROR, "Unable to create compiler work directory",
+                       e);
+            return false;
+        } finally {
+            if (tempWorkDir) {
+                Util.recursiveDelete(options.getWorkDir(), false);
+            }
+        }
+        return true;
+    }
 }
