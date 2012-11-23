@@ -1,3 +1,3 @@
 
-Snapshot of Google Web Toolkit/DEV compiler collection
+Google Web Toolkit Compiler Collection
 
