@@ -1,8 +1,8 @@
 #!/bin/bash
 
-GWT=${GWT_SRC:-${HOME}/src/google-web-toolkit}
+GWT=${GWT_TRUNK:-${HOME}/src/google-web-toolkit/trunk}
 
-testlist="trunk/user trunk/dev/core trunk/dev/core/super"
+testlist="user dev/core dev/core/super"
 
 if [ -n "${1}" ]&&[ -e "${1}" ]
 then
