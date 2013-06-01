@@ -82,100 +82,50 @@ public class Update
         System.err.println();
     }
     public static void main(String[] argv){
-        if (2 <= argv.length){
+        try {
+            if (2 <= argv.length){
 
-            if (3 <= argv.length){
+                if (3 <= argv.length){
 
-                PropertySource(argv[2]);
-            }
-            else {
-                PropertySource("${user.home}/update.properties");
-            }
-
-            if ("eval".equals(argv[0])){
-
-                File[] targets = PropertyFiles(argv[1]);
-
-                if (null != targets){
-                    for (File tgt: targets){
-                        System.out.println(tgt);
-                    }
-                    System.exit(0);
+                    PropertySource(argv[2]);
                 }
                 else {
-                    System.err.println("No targets found.");
-                    System.exit(1);
+                    PropertySource("${user.home}/update.properties");
                 }
-            }
-            else {
 
-                File[] sources = Source(argv[0]);
+                if ("eval".equals(argv[0])){
 
-                if (null != sources){
+                    File[] targets = PropertyFiles(argv[1]);
 
-                    for (File src: sources){
+                    if (null != targets){
+                        for (File tgt: targets){
+                            System.out.println(tgt);
+                        }
+                        System.exit(0);
+                    }
+                    else {
+                        System.err.println("No targets found.");
+                        System.exit(1);
+                    }
+                }
+                else {
 
-                        File[] targets = Target(src,argv[1]);
+                    File[] sources = Source(argv[0]);
 
-                        if (null != targets){
-                            if (Debug){
-                                try {
-                                    for (File tgt: targets){
-                                        /*
-                                         * Copy source to target
-                                         */
-                                        System.out.printf("+ copy '%s' to '%s' in '%s'%n",src.getPath(),tgt.getName(),tgt.getParentFile().getPath());
-                                        /*
-                                         * Delete old versions
-                                         */
-                                        File[] deletes = ListDeletes(src,tgt);
-                                        if (null != deletes){
+                    if (null != sources){
 
-                                            for (File del: deletes){
+                        for (File src: sources){
 
-                                                if (DeleteFile(del))
-                                                    System.out.printf("Deleted %s\n",del.getPath());
-                                                else
-                                                    System.out.printf("Failed to delete %s\n",del.getPath());
-                                            }
-                                        }
-                                        /*
-                                         * Add new versions
-                                         */
-                                        if (AddFile(tgt))
-                                            System.out.printf("Added %s\n",tgt.getPath());
-                                        else
-                                            System.out.printf("Modified %s\n",tgt.getPath());
-                                    }
-                                }
-                                catch (Exception exc){
-                                    exc.printStackTrace();
-                                    System.exit(1);
-                                }
-                            }
-                            else {
-                                final long srclen = src.length();
-                                try {
-                                    FileChannel source = new FileInputStream(src).getChannel();
+                            File[] targets = Target(src,argv[1]);
+
+                            if (null != targets){
+                                if (Debug){
                                     try {
                                         for (File tgt: targets){
                                             /*
                                              * Copy source to target
                                              */
-                                            try {
-                                                FileChannel target = new FileOutputStream(tgt).getChannel();
-                                                try {
-                                                    source.transferTo(0L,srclen,target);
-                                                }
-                                                finally {
-                                                    target.close();
-                                                }
-                                            }
-                                            catch (java.io.FileNotFoundException exc){
-                                                System.err.printf("File not found: %s%n",tgt.getAbsolutePath());
-                                                exc.printStackTrace();
-                                                System.exit(1);
-                                            }
+                                            System.out.printf("+ copy '%s' to '%s' in '%s'%n",src.getPath(),tgt.getName(),tgt.getParentFile().getPath());
                                             /*
                                              * Delete old versions
                                              */
@@ -199,33 +149,91 @@ public class Update
                                                 System.out.printf("Modified %s\n",tgt.getPath());
                                         }
                                     }
-                                    finally {
-                                        source.close();
+                                    catch (Exception exc){
+                                        exc.printStackTrace();
+                                        System.exit(1);
                                     }
                                 }
-                                catch (java.io.FileNotFoundException exc){
-                                    System.err.printf("File not found: %s%n",src.getAbsolutePath());
-                                    exc.printStackTrace();
-                                    System.exit(1);
-                                }
-                                catch (Exception exc){
-                                    exc.printStackTrace();
-                                    System.exit(1);
+                                else {
+                                    final long srclen = src.length();
+                                    try {
+                                        FileChannel source = new FileInputStream(src).getChannel();
+                                        try {
+                                            for (File tgt: targets){
+                                                /*
+                                                 * Copy source to target
+                                                 */
+                                                try {
+                                                    FileChannel target = new FileOutputStream(tgt).getChannel();
+                                                    try {
+                                                        source.transferTo(0L,srclen,target);
+                                                    }
+                                                    finally {
+                                                        target.close();
+                                                    }
+                                                }
+                                                catch (java.io.FileNotFoundException exc){
+                                                    System.err.printf("File not found: %s%n",tgt.getAbsolutePath());
+                                                    exc.printStackTrace();
+                                                    System.exit(1);
+                                                }
+                                                /*
+                                                 * Delete old versions
+                                                 */
+                                                File[] deletes = ListDeletes(src,tgt);
+                                                if (null != deletes){
+
+                                                    for (File del: deletes){
+
+                                                        if (DeleteFile(del))
+                                                            System.out.printf("Deleted %s\n",del.getPath());
+                                                        else
+                                                            System.out.printf("Failed to delete %s\n",del.getPath());
+                                                    }
+                                                }
+                                                /*
+                                                 * Add new versions
+                                                 */
+                                                if (AddFile(tgt))
+                                                    System.out.printf("Added %s\n",tgt.getPath());
+                                                else
+                                                    System.out.printf("Modified %s\n",tgt.getPath());
+                                            }
+                                        }
+                                        finally {
+                                            source.close();
+                                        }
+                                    }
+                                    catch (java.io.FileNotFoundException exc){
+                                        System.err.printf("File not found: %s%n",src.getAbsolutePath());
+                                        exc.printStackTrace();
+                                        System.exit(1);
+                                    }
+                                    catch (Exception exc){
+                                        exc.printStackTrace();
+                                        System.exit(1);
+                                    }
                                 }
                             }
                         }
+                        System.exit(0);
                     }
-                    System.exit(0);
-                }
-                else {
-                    System.err.printf("Source file(s) not found in '%s'\n",argv[0]);
-                    System.exit(1);
+                    else {
+                        System.err.printf("Source file(s) not found in '%s'\n",argv[0]);
+                        System.exit(1);
+                    }
                 }
             }
+            else {
+                usage();
+                System.exit(1);
+            }
         }
-        else {
-            usage();
-            System.exit(1);
+        catch (RuntimeException exc){
+
+            exc.printStackTrace();
+
+            System.exit(0);// continue build
         }
     }
 
@@ -301,7 +309,7 @@ public class Update
     }
     private final static File PropertyFile(String request){
         String value = PropertyEval(request);
-        if (null != value && 0 > value.indexOf(':'))
+        if (null != value)
             return new File(value);
         else
             throw new IllegalArgumentException(String.format("File not found in '%s' from '%s'",value,request));
