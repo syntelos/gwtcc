@@ -16,5 +16,7 @@ do
     then
         echo "Failed to copy onto '${src}'"
         exit 1
+    else
+        git add ${src}
     fi
 done
