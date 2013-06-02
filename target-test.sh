@@ -5,14 +5,14 @@ failures=0
 
 for src in $(find  src/com/google/ -type d ) 
 do
- if tgt=$(./target.sh $src)&& [ -d $tgt ]
- then
-     echo ok $src
-     successes=$(( ${successes} + 1 ))
- else
-     echo ng $src
-     failures=$(( ${failures} + 1 ))
- fi
+    if tgt=$(./target.sh $src)&& [ -d $tgt ]
+    then
+        echo ok $src
+        successes=$(( ${successes} + 1 ))
+    else
+        echo ng $src
+        failures=$(( ${failures} + 1 ))
+    fi
 done
 
 if [ 0 -lt ${failures} ]

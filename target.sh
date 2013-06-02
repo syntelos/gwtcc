@@ -2,11 +2,11 @@
 
 GWT=${GWT_TRUNK:-${HOME}/src/google-web-toolkit/trunk}
 
-testlist="user dev/core dev/core/super"
+testlist="user dev/core dev/core/super user/super"
 
-if [ -n "${1}" ]&&[ -e "${1}" ]
+if [ -n "${1}" ]
 then
-    while [ -n "${1}" ]&&[ -e "${1}" ]
+    while [ -n "${1}" ]
     do
         src="${1}"
         found=false

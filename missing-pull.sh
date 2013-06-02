@@ -7,7 +7,7 @@
 #     (git adds)
 
 gwt_dir=~/src/google-web-toolkit
-dev_dir=${gwt_dir}/trunk/dev
+dev_dir=${gwt_dir}/trunk
 
 list_in="missing.txt"
 
@@ -20,7 +20,7 @@ do
     for src in $(find ${dev_dir} -type f -name "${name}.java")
     do
 
-        tgt=$(echo $src | sed 's%.*/dev/core/%%')
+        tgt=$(echo $src | sed 's%.*/com/google/%src/com/google/%')
         if 2>/dev/null cp -p $src $tgt
         then
             if ! git add ${tgt}

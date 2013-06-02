@@ -82,11 +82,16 @@
     </copy>
 
     <javac srcdir="${src}" destdir="${bin}" debug="${compiler.debug}" encoding="${compiler.encoding}"
-           source="${compiler.source}" target="${compiler.target}">
+           source="${compiler.source}" target="${compiler.target}" includeAntRuntime="false">
       <classpath>
         <path refid="lib.path"/>
       </classpath>
     </javac>
+  </target>
+
+  <target name="clean">
+
+    <delete dir="${bin}"/>
   </target>
 
 </project>
