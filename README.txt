@@ -11,23 +11,13 @@ Overview
 
   http://blog.syntelos.com/2012/11/getting-to-know-gwt-compiler.html
 
+Development
 
-Repository
+  The objective, here, is to separate a minimal GWTC for compiling
+  Java to JavaScript.  In particular, to avoid GWT RPC and other user
+  extensions to browser JavaScript.  User extensions should be
+  separate from the compiler.
 
-  This repo is intended as an unmodified copy of a selected subset of
-
-    http://google-web-toolkit.googlecode.com/svn/
-
-  Some or all java source files may be pretty printed.
-
-
-Upstream Revision
-
-  http://github.com/syntelos/gwtcc/blob/master/upstream.txt
-
-
-Forks
-
-  Modifications or contributions performed downstream may choose to
-  pull from here.
+  Notable inclusions are DOM, HTML and ARIA -- as standard components
+  of the browser target runtime.
 

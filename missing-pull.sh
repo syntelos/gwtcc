@@ -58,8 +58,7 @@ do
                     exit 1
                 fi
             else
-                echo "Failure in 'cp $src $tgt'"
-                exit 1
+                echo "Warning, failure in 'cp $src $tgt'"
             fi
         fi
     done
